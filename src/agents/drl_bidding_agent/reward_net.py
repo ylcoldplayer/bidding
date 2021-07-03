@@ -16,7 +16,7 @@ class RewardNetAgent:
     def perform_mini_batch(self):
         pass
 
-    def _update_episode(self):
+    def update_episode(self):
         pass
 
     def add_pair_t(self, state, action):
@@ -33,3 +33,8 @@ class RewardNetAgent:
         """
         sa = torch.from_numpy(state_action_pair).float().unsqueeze(0).to(device)
         return self.reward_nn(sa)
+
+
+class ReplayBuffer:
+    def __init__(self):
+        pass

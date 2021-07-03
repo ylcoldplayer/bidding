@@ -13,16 +13,19 @@ class DRLBiddingAgent:
         self.eps_high = 0.95
         self.eps_low = 0.05
         self.anneal = 0.00005
+        self.prev_timestamp = 0  # todo:
         self._reset_episode()
 
         self.dqn_agent = DQNAgent(state_size=self.dqn_state_size, action_size=self.dqn_action_size)
         self.reward_net_agent = RewardNetAgent(state_action_size=8, reward_size=1)  # Todo: implement
         self.date = 0  # the date
 
+        self.dqn_prev_state = None
+        self.dqn_prev_action = 3
+
         self.total_reward = 0.0
         self.totoal_wins = 0
         self.total_bids = 0
-
 
     # Todo: implement
     def _init_hyper_paras(self, config_file=CONFIG_FILE):
@@ -36,6 +39,8 @@ class DRLBiddingAgent:
         self.dqn_action_size = None
         self.dqn_prev_state = None
         self.dqn_prev_action = 3
+        self.lambda_t = 1.0  # initial action
+        self.running_budget = self.total_budget
 
     def _get_state(self):
         """
@@ -81,6 +86,7 @@ class DRLBiddingAgent:
         :param cost:
         :return:
         """
+        self.running_budget -= cost
         self.r_t += reward
         self.total_reward += reward
         self.cost_t += cost
@@ -100,7 +106,7 @@ class DRLBiddingAgent:
         self.wins_t = 0
         self.bids_t = 0
 
-        self.eps = max(self.eps - self.anneal*self.step_t, self.eps_low)
+        self.eps = max(self.eps - self.anneal * self.step_t, self.eps_low)
 
     def _update_step(self):
         """
@@ -110,10 +116,10 @@ class DRLBiddingAgent:
         self.step_t += 1
         self.remaining_budget_t_minus_1 = self.remaining_budget_t
         self.remaining_budget_t -= self.cost_t
-        self.bct_t = (self.remaining_budget_t_minus_1 - self.remaining_budget_t)*1.0/self.remaining_budget_t_minus_1
+        self.bct_t = (self.remaining_budget_t_minus_1 - self.remaining_budget_t) * 1.0 / self.remaining_budget_t_minus_1
         self.rol_t -= 1
-        self.cpm_t = self.cost_t*1.0/self.bids_t
-        self.wr_t = self.wins_t*1.0/self.bids_t
+        self.cpm_t = self.cost_t * 1.0 / self.bids_t
+        self.wr_t = self.wins_t * 1.0 / self.bids_t
 
     def act(self, obs, reward, cost):
         """
@@ -123,8 +129,9 @@ class DRLBiddingAgent:
         :param cost: cost from last action
         :return:
         """
-
         """
+        Paper: https://arxiv.org/pdf/1802.08365.pdf
+        
         Algorithm: 
             1. Get previous state S_prev from agent, get previous timestamp
             2. Get current timestamp, t_current (from current obs)
@@ -153,12 +160,13 @@ class DRLBiddingAgent:
 
         step_diff = self._step_diff(cur_timestamp, prev_timestamp)
         same_episode = self._same_episode(cur_timestamp)
+        terminal_state = (same_episode is False)
 
         # update reward and cost
         self._update_reward_cost_within_step(reward, cost)
 
+        # TODO: Should consider the scenario in which two bidding requests more than 15 minutes away from each other
         if step_diff != 0 and same_episode:
-            # TODO: implement
             dqn_prev_action = self.dqn_prev_action
 
             # Update RewardNet
@@ -172,22 +180,30 @@ class DRLBiddingAgent:
             dqn_cur_sate = self._get_state()
 
             # Choose action for current state using adaptive epsilon-greedy policy, i.e. get scale factor beta
-            beta_t = self.dqn_agent.act(dqn_cur_sate, eps=self.eps)
+            beta_t_idx = self.dqn_agent.act(dqn_cur_sate, eps=self.eps)
+            # Update lambda_t
+            self.lambda_t *= (1 + self.betas[beta_t_idx])
 
             # Get RewardNet reward_net_r_t
             sa = np.append(dqn_pre_state, dqn_prev_action)
             reward_net_r_t = float(self.reward_net_agent.get_reward_net_r_t(sa))
 
-            self.dqn_agent.act()
+            # sample mini batch apply gradient descent to update Q function, store experience in replay buffer
+            self.dqn_agent.update(dqn_cur_sate, dqn_prev_action, reward_net_r_t, dqn_cur_sate, terminal_state)
 
+            # Update dqn state and action
+            self.dqn_prev_state = dqn_cur_sate
+            self.dqn_prev_action = beta_t_idx
 
+            # Update timestamp
+            self.prev_timestamp = cur_timestamp
             self._reset_step()
 
+        elif not same_episode:  # episode changes
+            self.reward_net_agent.update_episode()
 
-        elif not same_episode:
-            pass
-
-        return 1.0
+        bidding_price = min(self.target_value/self.lambda_t, self.running_budget)
+        return bidding_price
 
     # TODO: implement
     def _step_diff(self, t1, t2):
