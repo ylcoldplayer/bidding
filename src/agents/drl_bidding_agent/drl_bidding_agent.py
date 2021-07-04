@@ -17,7 +17,7 @@ class DRLBiddingAgent:
         self._reset_episode()
 
         self.dqn_agent = DQNAgent(state_size=self.dqn_state_size, action_size=self.dqn_action_size)
-        self.reward_net_agent = RewardNetAgent(state_action_size=8, reward_size=1)  # Todo: implement
+        self.reward_net_agent = RewardNetAgent(state_action_size=8)  # Todo: implement
         self.date = 0  # the date
 
         self.dqn_prev_state = None
@@ -201,6 +201,7 @@ class DRLBiddingAgent:
 
         elif not same_episode:  # episode changes
             self.reward_net_agent.update_episode()
+            self.reward_net_agent.reset_episode()
 
         bidding_price = min(self.target_value/self.lambda_t, self.running_budget)
         return bidding_price

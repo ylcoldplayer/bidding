@@ -28,7 +28,7 @@ class DQNAgent:
         self.optimizer = optim.Adam(self.mlp_nn.parameters(), lr=LR)
 
         # Replay Buffer
-        self.reply_buffer = ReplayBuffer(BUFFER_SIZE, BATCH_SIZE, seed)
+        self.replay_buffer = ReplayBuffer(BUFFER_SIZE, BATCH_SIZE, seed)
 
         # Internal step counter
         self._step_cnt = 0
@@ -47,7 +47,7 @@ class DQNAgent:
         # Set neural net back to training mode
         self.mlp_nn.train()
 
-        # return epsilon-greed policy action
+        # return epsilon-greedy policy action
         if random.random() > eps:
             return np.argmax(action_values.cpu().data.numpy())
         else:
@@ -64,13 +64,13 @@ class DQNAgent:
         :param terminal_state:
         :return:
         """
-        self.reply_buffer.add(s, a, r, next_s, terminal_state)
+        self.replay_buffer.add(s, a, r, next_s, terminal_state)
 
         # Update network every UPDATE_FREQ
         self._step_cnt = (self._step_cnt + 1) % UPDATE_FREQ
 
         if self._step_cnt == 0:
-            experiences = self.reply_buffer.sample_mini_batch()
+            experiences = self.replay_buffer.sample_mini_batch()
             self.learn(experiences, GAMMA)
 
     def learn(self, experiences, gamma):
@@ -114,7 +114,7 @@ class ReplayBuffer:
         :param batch_size:
         :param seed:
         """
-        self.reply_buffer = deque(maxlen=buffer_size)
+        self.replay_buffer = deque(maxlen=buffer_size)
         self.batch_size = batch_size
         self.experience = namedtuple('experience', field_names=['state', 'action', 'reward', 'next_state', 'done'])
         random.seed(seed)
@@ -130,15 +130,15 @@ class ReplayBuffer:
         :return:
         """
         e = self.experience(state, action, reward, next_state, done)
-        self.reply_buffer.append(e)
+        self.replay_buffer.append(e)
 
     def sample_mini_batch(self):
         """
 
         :return:
         """
-        k = min(self.batch_size, len(self.reply_buffer))
-        experiences = random.sample(self.reply_buffer, k=k)
+        k = min(self.batch_size, len(self.replay_buffer))
+        experiences = random.sample(self.replay_buffer, k=k)
 
         states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
         actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).long().to(device)
