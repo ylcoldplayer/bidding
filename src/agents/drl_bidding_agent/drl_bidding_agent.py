@@ -27,6 +27,8 @@ class DRLBiddingAgent:
         self.totoal_wins = 0
         self.total_bids = 0
 
+        self.T = 96  # number of time steps
+
     # Todo: implement
     def _init_hyper_paras(self, config_file=CONFIG_FILE):
         self.step_t = 1
@@ -158,15 +160,16 @@ class DRLBiddingAgent:
         cur_timestamp = get_timestamp_from_obs(obs)
         dqn_pre_state = self.dqn_prev_state
 
-        step_diff = self._step_diff(cur_timestamp, prev_timestamp)
-        same_episode = self._same_episode(cur_timestamp)
+        interval = int(1440/self.T)
+        sd = step_diff(prev_timestamp, cur_timestamp, interval)
+        same_episode = same_date(prev_timestamp, cur_timestamp)
         terminal_state = (same_episode is False)
 
         # update reward and cost
         self._update_reward_cost_within_step(reward, cost)
 
         # TODO: Should consider the scenario in which two bidding requests more than 15 minutes away from each other
-        if step_diff != 0 and same_episode:
+        if sd != 0 and same_episode:
             dqn_prev_action = self.dqn_prev_action
 
             # Update RewardNet
@@ -205,27 +208,6 @@ class DRLBiddingAgent:
 
         bidding_price = min(self.target_value/self.lambda_t, self.running_budget)
         return bidding_price
-
-    # TODO: implement
-    def _step_diff(self, t1, t2):
-        """
-
-        :param t1:
-        :param t2:
-        :return:
-        """
-        return 0
-
-    # TODO: implement
-    def _same_episode(self, t):
-        """
-        Check if t is still in the same date
-        :param t:
-        :param date:
-        :return:
-        """
-        today = self.date
-        return True
 
 
 if __name__ == '__main__':
