@@ -4,7 +4,7 @@ from src.agents.drl_bidding_agent.uitls import *
 from numpy.random import lognormal, normal
 
 START_DATE = '2021-07-04T00::00::45.456777'
-EPISODES = 5
+EPISODES = 30
 STEPS = 96
 
 CAMPAIGN_ID = 'campaignId'
@@ -77,5 +77,5 @@ def generate_payprice(mu=1.2, sigma=1):
 
 if __name__ == '__main__':
     random.seed(0)
-    outfile = '/Users/yuanlongchen/Desktop/Bidding_Simulation/src/data/test_bidding_request.csv'
+    outfile = '../data/test_bidding_request.csv'
     generate(START_DATE, EPISODES, STEPS, outfile)
