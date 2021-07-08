@@ -3,42 +3,60 @@ from src.agents.drl_bidding_agent.reward_net import RewardNetAgent
 from src.agents.drl_bidding_agent.uitls import *
 import numpy as np
 
-# TODO: assign
-CONFIG_FILE = ''
+CONFIG_FILE = './config.yaml'
 
 
 class DRLBiddingAgent:
-    def __init__(self, ):
+    def __init__(self, config_file=CONFIG_FILE):
+        # hyper parameter
         self.betas = [-0.08, -0.03, -0.01, 0, 0.01, 0.03, 0.08]
         self.eps_high = 0.95
         self.eps_low = 0.05
+        self.eps = self.eps_high
         self.anneal = 0.00005
-        self.prev_timestamp = 0  # todo:
-        self._reset_episode()
+        self.total_budget = get_total_budget()
+        self.target_value = get_target_value()
+        self.gamma = 1.0  # discount factor
+        self.T = get_T(config_file)  # total opportunities we have to tune policy
 
-        self.dqn_agent = DQNAgent(state_size=self.dqn_state_size, action_size=self.dqn_action_size)
-        self.reward_net_agent = RewardNetAgent(state_action_size=8)  # Todo: implement
-        self.date = 0  # the date
-
+        self.dqn_state_size = get_dqn_state_size(config_file)
+        self.dqn_action_size = get_dqn_action_size(config_file)
         self.dqn_prev_state = None
         self.dqn_prev_action = 3
+        self.start_date = get_start_date(config_file)  # the date
+        self.prev_timestamp = self.start_date
+
+        self.step_t = 1
+        self.remaining_budget_t = self.total_budget
+        self.remaining_budget_t_minus_1 = self.total_budget
+        self.running_budget = self.total_budget
+        self.lambda_t = 1.0  # initial action
+        self.bct_t = 0.  # budget consumption rate
+        self.rol_t = self.T  # regulation opportunities left
+        self.cpm_t = 0.  # the cost per million of impression of the winning impressions
+        self.wr_t = 0.  # the winning rate so far in this episode
+        self.r_t = 0.  # total reward so far, in our case, total pctr
+        self.cost_t = 0.  # cost within each step
+        self.wins_t = 0   # wins within each step
+        self.bids_t = 0  # number of bids within each step
 
         self.total_reward = 0.0
-        self.totoal_wins = 0
+        self.total_wins = 0
         self.total_bids = 0
 
-        self.T = 96  # number of time steps
+        # Agents
+        self.dqn_agent = DQNAgent(state_size=self.dqn_state_size, action_size=self.dqn_action_size)
+        self.reward_net_agent = RewardNetAgent(state_action_size=8)  # Todo: implement
 
-    # Todo: implement
     def _init_hyper_paras(self, config_file=CONFIG_FILE):
         self.step_t = 1
-        self.total_budget = None
+        self.total_budget = get_total_budget(config_file)
         self.remaining_budget_t = self.total_budget
-        self.target_value = None
-        self.gamma = 1  # discount factor
-        self.T = None  # total opportunities we have to tune policy
-        self.dqn_state_size = None
-        self.dqn_action_size = None
+        self.target_value = get_target_value(config_file)
+        self.gamma = 1.0  # discount factor
+        self.T = get_T(config_file)  # total opportunities we have to tune policy
+        self.dqn_state_size = get_dqn_state_size(config_file)
+        self.dqn_action_size = get_dqn_action_size(config_file)
         self.dqn_prev_state = None
         self.dqn_prev_action = 3
         self.lambda_t = 1.0  # initial action
@@ -66,7 +84,8 @@ class DRLBiddingAgent:
         :return:
         """
         self._init_hyper_paras()
-        self.prev_timestamp = 0
+        self.start_date = increment_ts_by_one_day(start_date)
+        self.prev_timestamp = self.start_date
         self.remaining_budget_t = self.total_budget  # remaining budget
         self.remaining_budget_t_minus_1 = self.total_budget
         self.bct_t = 0.  # budget consumption rate
@@ -96,7 +115,7 @@ class DRLBiddingAgent:
         self.total_bids += 1
         if cost > 0.:
             self.wins_t += 1
-            self.totoal_wins += 1
+            self.total_wins += 1
 
     def _reset_step(self):
         """
@@ -211,5 +230,4 @@ class DRLBiddingAgent:
 
 
 if __name__ == '__main__':
-    # TODO: add test code here
-    pass
+    print('test')

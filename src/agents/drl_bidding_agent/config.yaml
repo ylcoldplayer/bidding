@@ -1,0 +1,6 @@
+T: 96
+start_date: 2021-07-04T00::00::00.1
+total_budget: 10.0
+target_value: 1.0
+dqn_state_size: 7
+dqn_action_size: 7

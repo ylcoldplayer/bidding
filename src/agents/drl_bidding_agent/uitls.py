@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+import yaml
+import torch
 
 DATE_FORMAT = '%Y-%m-%dT%H::%M::%S.%f'
 
@@ -62,6 +64,79 @@ def same_date(ts1, ts2):
     return dt1.date() == dt2.date()
 
 
+def load_yaml(yaml_file):
+    """
+
+    :param yaml_file:
+    :return:
+    """
+    with open(yaml_file, 'r') as f:
+        return yaml.load(f, Loader=yaml.FullLoader)
+
+
+def get_start_date(config_file):
+    """
+
+    :param config_file:
+    :return:
+    """
+    yaml_dict = load_yaml(config_file)
+    return yaml_dict['start_date']
+
+
+def get_T(config_file):
+    """
+
+    :param config_file:
+    :return:
+    """
+    yaml_dict = load_yaml(config_file)
+    T = 96
+    if 'T' in yaml_dict:
+        T = yaml_dict['T']
+    return T
+
+
+def get_total_budget(config_file):
+    """
+
+    :param config_file:
+    :return:
+    """
+    yaml_dict = load_yaml(config_file)
+    return yaml_dict['total_budget']
+
+
+def get_target_value(config_file):
+    """
+
+    :param config_file:
+    :return:
+    """
+    yaml_dict = load_yaml(config_file)
+    return yaml_dict['target_value']
+
+
+def get_dqn_state_size(config_file):
+    """
+
+    :param config_file:
+    :return:
+    """
+    yaml_dict = load_yaml(config_file)
+    return yaml_dict['dqn_state_size']
+
+
+def get_dqn_action_size(config_file):
+    """
+
+    :param config_file:
+    :return:
+    """
+    yaml_dict = load_yaml(config_file)
+    return yaml_dict['dqn_action_size']
+
+
 if __name__ == '__main__':
     ts_test_1 = '2021-07-04T15::11::45.456777'
     ts_test_2 = '2021-07-04T15::50::45.456777'
@@ -72,3 +147,13 @@ if __name__ == '__main__':
     ts_test_3 = '2021-07-05T15::50::45.456777'
     print(same_date(ts_test_1, ts_test_2))
     print(same_date(ts_test_1, ts_test_3))
+
+    yaml_file = './config.yaml'
+    start_date = get_start_date(yaml_file)
+    print(type(start_date))
+    print(type(get_T(yaml_file)))
+    print(increment_ts_by_one_day(start_date))
+    print(get_target_value(yaml_file))
+    print(get_total_budget(yaml_file))
+    print(get_dqn_action_size(yaml_file))
+    print(get_dqn_state_size(yaml_file))

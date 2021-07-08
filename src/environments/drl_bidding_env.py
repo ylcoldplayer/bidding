@@ -137,10 +137,10 @@ class BiddingData:
 
 if __name__ == '__main__':
     fields = ['campaignId', 'timestamp', 'pctr', 'payprice']
-    data_file_pth = '../data/dummy_bidding_request.csv'
+    data_file_pth = '../data/test_bidding_request.csv'
     env = DRLBiddingEnv(data_file_pth, fields)
     print('next bid request: \n', env._get_next_bid_request())
     print('\n')
     print(env.step(4.0))
-    print(env.step(3))
+    print(env.step(1.0))
     print(env.step(5))
