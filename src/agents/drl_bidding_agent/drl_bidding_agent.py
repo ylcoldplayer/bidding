@@ -37,6 +37,10 @@ class DRLBiddingAgent:
         self.total_wins = 0
         self.total_bids = 0
 
+        self.episode_reward = 0.0
+        self.episode_wins = 0
+        self.episode_bids = 0
+
         self.dqn_state_size = get_dqn_state_size(config_file)
         self.dqn_action_size = get_dqn_action_size(config_file)
         self.dqn_prev_state = self._get_state()
@@ -59,7 +63,7 @@ class DRLBiddingAgent:
         self.dqn_action_size = get_dqn_action_size(config_file)
         self.dqn_prev_state = self._get_state()
         self.dqn_prev_action = 3
-        # self.lambda_t = 1.0  # initial action
+        self.lambda_t = 1.0  # initial action
         self.running_budget = self.total_budget
 
     def _get_state(self):
@@ -99,6 +103,10 @@ class DRLBiddingAgent:
         self.bids_t = 0
         # self.eps = self.eps_high
 
+        self.episode_reward = 0.0
+        self.episode_wins = 0
+        self.episode_bids = 0
+
     def _update_reward_cost_within_step(self, reward, cost):
         """
         Update reward and cost within each step
@@ -108,13 +116,16 @@ class DRLBiddingAgent:
         """
         self.running_budget -= cost
         self.r_t += reward
-        self.total_reward += reward
         self.cost_t += cost
         self.bids_t += 1
         self.total_bids += 1
+        self.total_reward += reward
+        self.episode_bids += 1
+        self.episode_reward += reward
         if cost > 0.:
             self.wins_t += 1
             self.total_wins += 1
+            self.episode_wins += 1
 
     def _reset_step(self):
         """
@@ -233,13 +244,24 @@ class DRLBiddingAgent:
             print('Total reward: ', self.total_reward)
             print('Winning rate: ', self.total_wins*1.0/self.total_bids)
             print('total bids: ', self.total_bids)
+
+            print('Episode reward: ', self.episode_reward)
+            print('Episode winning rate: ', self.episode_wins*1./self.episode_bids)
+            print('Episode bids: ', self.episode_bids)
+
             self.reward_net_agent.update_episode()
             self.reward_net_agent.reset_episode()
             self._reset_episode()
 
         bidding_price = min(self.target_value/self.lambda_t, self.running_budget)
+        print('running_budget: ', self.running_budget)
+        print('lambda_t: ', self.lambda_t)
+        print('bidding price: ', bidding_price)
+        print('eps: ', self.eps)
+        print('reward/bids ratio: ', self.total_reward*1./self.total_bids)
         print('\n')
-        print('*'*20)
+        print('*'*200)
+        print('*'*200)
         print('\n')
         return bidding_price
 
