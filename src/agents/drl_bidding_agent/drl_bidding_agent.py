@@ -57,9 +57,9 @@ class DRLBiddingAgent:
         self.T = get_T(config_file)  # total opportunities we have to tune policy
         self.dqn_state_size = get_dqn_state_size(config_file)
         self.dqn_action_size = get_dqn_action_size(config_file)
-        self.dqn_prev_state = None
+        self.dqn_prev_state = self._get_state()
         self.dqn_prev_action = 3
-        self.lambda_t = 1.0  # initial action
+        # self.lambda_t = 1.0  # initial action
         self.running_budget = self.total_budget
 
     def _get_state(self):
@@ -84,7 +84,7 @@ class DRLBiddingAgent:
         :return:
         """
         self._init_hyper_paras()
-        self.start_date = increment_ts_by_one_day(start_date)
+        self.start_date = increment_ts_by_one_day(self.start_date)
         self.prev_timestamp = self.start_date
         self.remaining_budget_t = self.total_budget  # remaining budget
         self.remaining_budget_t_minus_1 = self.total_budget
@@ -97,8 +97,7 @@ class DRLBiddingAgent:
         self.cost_t = 0.
         self.wins_t = 0
         self.bids_t = 0
-
-        self.eps = self.eps_high
+        # self.eps = self.eps_high
 
     def _update_reward_cost_within_step(self, reward, cost):
         """
@@ -236,6 +235,7 @@ class DRLBiddingAgent:
             print('total bids: ', self.total_bids)
             self.reward_net_agent.update_episode()
             self.reward_net_agent.reset_episode()
+            self._reset_episode()
 
         bidding_price = min(self.target_value/self.lambda_t, self.running_budget)
         print('\n')
