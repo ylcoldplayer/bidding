@@ -3,7 +3,9 @@ from src.agents.drl_bidding_agent.drl_bidding_agent import DRLBiddingAgent
 
 
 def run():
-    env = DRLBiddingEnv()
+    fields = ['campaignId', 'timestamp', 'pctr', 'payprice']
+    data_path = '../data/test_bidding_request.csv'
+    env = DRLBiddingEnv(data_path, fields)
     agent = DRLBiddingAgent()
     obs = env.reset()
     done = False

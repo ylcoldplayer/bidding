@@ -3,7 +3,7 @@ from src.agents.drl_bidding_agent.reward_net import RewardNetAgent
 from src.agents.drl_bidding_agent.uitls import *
 import numpy as np
 
-CONFIG_FILE = './config.yaml'
+CONFIG_FILE = '/Users/yuachen/workspace/bidding/src/agents/drl_bidding_agent/config.yaml'
 
 
 class DRLBiddingAgent:
@@ -14,17 +14,10 @@ class DRLBiddingAgent:
         self.eps_low = 0.05
         self.eps = self.eps_high
         self.anneal = 0.00005
-        self.total_budget = get_total_budget()
-        self.target_value = get_target_value()
+        self.total_budget = get_total_budget(config_file)
+        self.target_value = get_target_value(config_file)
         self.gamma = 1.0  # discount factor
         self.T = get_T(config_file)  # total opportunities we have to tune policy
-
-        self.dqn_state_size = get_dqn_state_size(config_file)
-        self.dqn_action_size = get_dqn_action_size(config_file)
-        self.dqn_prev_state = None
-        self.dqn_prev_action = 3
-        self.start_date = get_start_date(config_file)  # the date
-        self.prev_timestamp = self.start_date
 
         self.step_t = 1
         self.remaining_budget_t = self.total_budget
@@ -43,6 +36,13 @@ class DRLBiddingAgent:
         self.total_reward = 0.0
         self.total_wins = 0
         self.total_bids = 0
+
+        self.dqn_state_size = get_dqn_state_size(config_file)
+        self.dqn_action_size = get_dqn_action_size(config_file)
+        self.dqn_prev_state = self._get_state()
+        self.dqn_prev_action = 3
+        self.start_date = get_start_date(config_file)  # the date
+        self.prev_timestamp = self.start_date
 
         # Agents
         self.dqn_agent = DQNAgent(state_size=self.dqn_state_size, action_size=self.dqn_action_size)
@@ -180,9 +180,14 @@ class DRLBiddingAgent:
         dqn_pre_state = self.dqn_prev_state
 
         interval = int(1440/self.T)
+        print('pre_time: ', prev_timestamp)
+        print('cur_time: ', cur_timestamp)
         sd = step_diff(prev_timestamp, cur_timestamp, interval)
+        print('step_diff: ', sd)
         same_episode = same_date(prev_timestamp, cur_timestamp)
+        print('same_episode: ', same_episode)
         terminal_state = (same_episode is False)
+        print('terminal state: ', terminal_state)
 
         # update reward and cost
         self._update_reward_cost_within_step(reward, cost)
@@ -199,22 +204,26 @@ class DRLBiddingAgent:
             # update step to prepare for current state
             self._update_step()
             # Observe state s_t
-            dqn_cur_sate = self._get_state()
+            dqn_cur_state = self._get_state()
 
             # Choose action for current state using adaptive epsilon-greedy policy, i.e. get scale factor beta
-            beta_t_idx = self.dqn_agent.act(dqn_cur_sate, eps=self.eps)
+            beta_t_idx = self.dqn_agent.act(dqn_cur_state, eps=self.eps)
             # Update lambda_t
             self.lambda_t *= (1 + self.betas[beta_t_idx])
 
             # Get RewardNet reward_net_r_t
+            print('Prev state: ', dqn_pre_state)
+            print('Prev action: ', dqn_prev_action)
+            print('Cur state: ', dqn_cur_state)
+
             sa = np.append(dqn_pre_state, dqn_prev_action)
             reward_net_r_t = float(self.reward_net_agent.get_reward_net_r_t(sa))
 
             # sample mini batch apply gradient descent to update Q function, store experience in replay buffer
-            self.dqn_agent.update(dqn_cur_sate, dqn_prev_action, reward_net_r_t, dqn_cur_sate, terminal_state)
+            self.dqn_agent.update(dqn_cur_state, dqn_prev_action, reward_net_r_t, dqn_cur_state, terminal_state)
 
             # Update dqn state and action
-            self.dqn_prev_state = dqn_cur_sate
+            self.dqn_prev_state = dqn_cur_state
             self.dqn_prev_action = beta_t_idx
 
             # Update timestamp
@@ -222,10 +231,16 @@ class DRLBiddingAgent:
             self._reset_step()
 
         elif not same_episode:  # episode changes
+            print('Total reward: ', self.total_reward)
+            print('Winning rate: ', self.total_wins*1.0/self.total_bids)
+            print('total bids: ', self.total_bids)
             self.reward_net_agent.update_episode()
             self.reward_net_agent.reset_episode()
 
         bidding_price = min(self.target_value/self.lambda_t, self.running_budget)
+        print('\n')
+        print('*'*20)
+        print('\n')
         return bidding_price
 
 

@@ -30,7 +30,7 @@ class RewardNetAgent:
         self.M = defaultdict()
 
         # Init reply buffer
-        self.replay_buffer = ReplayBuffer()
+        self.replay_buffer = ReplayBuffer(buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, seed=0)
 
     def reset_episode(self):
         """
@@ -132,3 +132,10 @@ class ReplayBuffer:
         rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
 
         return state_actions, rewards
+
+    def __len__(self):
+        """
+
+        :return:
+        """
+        return len(self.replay_buffer)
