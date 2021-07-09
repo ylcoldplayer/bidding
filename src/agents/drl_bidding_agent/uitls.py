@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 import yaml
-import torch
 
 DATE_FORMAT = '%Y-%m-%dT%H::%M::%S.%f'
 

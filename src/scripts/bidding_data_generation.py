@@ -59,6 +59,7 @@ def generate_data_point(ts):
 
 def generate_pctr(mu=-4, sigma=1):
     """
+    To plot lognormal: https://homepage.divms.uiowa.edu/~mbognar/applets/lognormal.html
     Generate pctr from lognormal distribution with default mu = -4, sigma = 1
     :return:
     """

@@ -1,6 +1,7 @@
 from src.agents.drl_bidding_agent.dqn import DQNAgent
 from src.agents.drl_bidding_agent.reward_net import RewardNetAgent
 from src.agents.drl_bidding_agent.uitls import *
+from src.logger import bidding_logger
 import numpy as np
 
 CONFIG_FILE = '/Users/yuachen/workspace/bidding/src/agents/drl_bidding_agent/config.yaml'
@@ -51,6 +52,9 @@ class DRLBiddingAgent:
         # Agents
         self.dqn_agent = DQNAgent(state_size=self.dqn_state_size, action_size=self.dqn_action_size)
         self.reward_net_agent = RewardNetAgent(state_action_size=8)  # Todo: implement
+
+        # Logger
+        self.logger = bidding_logger.get_bidding_logger('bidding_logger')
 
     def _init_hyper_paras(self, config_file=CONFIG_FILE):
         self.step_t = 1
@@ -190,14 +194,14 @@ class DRLBiddingAgent:
         dqn_pre_state = self.dqn_prev_state
 
         interval = int(1440/self.T)
-        print('pre_time: ', prev_timestamp)
-        print('cur_time: ', cur_timestamp)
+        self.logger.info('pre_time: ' + str(prev_timestamp))
+        self.logger.info('cur_time: ' + str(cur_timestamp))
         sd = step_diff(prev_timestamp, cur_timestamp, interval)
-        print('step_diff: ', sd)
+        self.logger.info('step_diff: ' + str(sd))
         same_episode = same_date(prev_timestamp, cur_timestamp)
-        print('same_episode: ', same_episode)
+        self.logger.info('same_episode: ' + str(same_episode))
         terminal_state = (same_episode is False)
-        print('terminal state: ', terminal_state)
+        self.logger.info('terminal state: ' + str(terminal_state))
 
         # update reward and cost
         self._update_reward_cost_within_step(reward, cost)
@@ -222,9 +226,9 @@ class DRLBiddingAgent:
             self.lambda_t *= (1 + self.betas[beta_t_idx])
 
             # Get RewardNet reward_net_r_t
-            print('Prev state: ', dqn_pre_state)
-            print('Prev action: ', dqn_prev_action)
-            print('Cur state: ', dqn_cur_state)
+            self.logger.info('Prev state: ' + str(dqn_pre_state))
+            self.logger.info('Prev action: ' + str(dqn_prev_action))
+            self.logger.info('Cur state: ' + str(dqn_cur_state))
 
             sa = np.append(dqn_pre_state, dqn_prev_action)
             reward_net_r_t = float(self.reward_net_agent.get_reward_net_r_t(sa))
@@ -241,28 +245,27 @@ class DRLBiddingAgent:
             self._reset_step()
 
         elif not same_episode:  # episode changes
-            print('Total reward: ', self.total_reward)
-            print('Winning rate: ', self.total_wins*1.0/self.total_bids)
-            print('total bids: ', self.total_bids)
+            self.logger.info('Total reward: ' + str(self.total_reward))
+            self.logger.info('Winning rate: ' + str(self.total_wins*1.0/self.total_bids))
+            self.logger.info('total bids: ' + str(self.total_bids))
 
-            print('Episode reward: ', self.episode_reward)
-            print('Episode winning rate: ', self.episode_wins*1./self.episode_bids)
-            print('Episode bids: ', self.episode_bids)
+            self.logger.info('Episode reward: ' + str(self.episode_reward))
+            self.logger.info('Episode wins: ' + str(self.episode_wins))
+            self.logger.info('Episode winning rate: ' + str(self.episode_wins*1./self.episode_bids))
+            self.logger.info('Episode bids: ' + str(self.episode_bids))
 
             self.reward_net_agent.update_episode()
             self.reward_net_agent.reset_episode()
             self._reset_episode()
 
         bidding_price = min(self.target_value/self.lambda_t, self.running_budget)
-        print('running_budget: ', self.running_budget)
-        print('lambda_t: ', self.lambda_t)
-        print('bidding price: ', bidding_price)
-        print('eps: ', self.eps)
-        print('reward/bids ratio: ', self.total_reward*1./self.total_bids)
-        print('\n')
-        print('*'*200)
-        print('*'*200)
-        print('\n')
+        self.logger.info('running_budget: ' + str(self.running_budget))
+        self.logger.info('lambda_t: ' + str(self.lambda_t))
+        self.logger.info('bidding price: ' + str(bidding_price))
+        self.logger.info('eps: ' + str(self.eps))
+        self.logger.info('reward/bids ratio: ' + str(self.total_reward*1./self.total_bids))
+        self.logger.info('*'*200)
+        self.logger.info('*'*200)
         return bidding_price
 
 
