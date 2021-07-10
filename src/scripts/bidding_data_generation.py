@@ -1,10 +1,10 @@
 import random
 
-from src.agents.drl_bidding_agent.uitls import *
+from src.agents.uitls import *
 from numpy.random import lognormal, normal
 
 START_DATE = '2021-07-04T00::00::45.456777'
-EPISODES = 30
+EPISODES = 60
 STEPS = 96
 
 CAMPAIGN_ID = 'campaignId'

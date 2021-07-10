@@ -1,13 +1,18 @@
 from src.agents.drl_bidding_agent.dqn import DQNAgent
 from src.agents.drl_bidding_agent.reward_net import RewardNetAgent
-from src.agents.drl_bidding_agent.uitls import *
+from src.agents.uitls import *
 from src.logger import bidding_logger
 import numpy as np
+import os
 
-CONFIG_FILE = '/Users/yuachen/workspace/bidding/src/agents/drl_bidding_agent/config.yaml'
+ROOT_DIR = get_root_dir()
+CONFIG_FILE = os.path.join(ROOT_DIR, 'src/agents/config.yaml')
 
 
 class DRLBiddingAgent:
+    """
+    Paper: https://arxiv.org/pdf/1802.08365.pdf
+    """
     def __init__(self, config_file=CONFIG_FILE):
         # hyper parameter
         self.betas = [-0.08, -0.03, -0.01, 0, 0.01, 0.03, 0.08]
@@ -54,7 +59,7 @@ class DRLBiddingAgent:
         self.reward_net_agent = RewardNetAgent(state_action_size=8)  # Todo: implement
 
         # Logger
-        self.logger = bidding_logger.get_bidding_logger('bidding_logger')
+        self.logger = bidding_logger.get_bidding_logger('drl_bidding', file_name='drl_bidding.log')
 
     def _init_hyper_paras(self, config_file=CONFIG_FILE):
         self.step_t = 1

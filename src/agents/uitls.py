@@ -1,7 +1,12 @@
 from datetime import datetime, timedelta
 import yaml
+from pathlib import Path
 
 DATE_FORMAT = '%Y-%m-%dT%H::%M::%S.%f'
+
+
+def get_root_dir() -> Path:
+    return Path(__file__).parent.parent.parent
 
 
 def get_timestamp_from_obs(obs):
@@ -147,7 +152,7 @@ if __name__ == '__main__':
     print(same_date(ts_test_1, ts_test_2))
     print(same_date(ts_test_1, ts_test_3))
 
-    yaml_file = './config.yaml'
+    yaml_file = 'config.yaml'
     start_date = get_start_date(yaml_file)
     print(type(start_date))
     print(type(get_T(yaml_file)))
@@ -156,3 +161,4 @@ if __name__ == '__main__':
     print(get_total_budget(yaml_file))
     print(get_dqn_action_size(yaml_file))
     print(get_dqn_state_size(yaml_file))
+    print(get_root_dir())
