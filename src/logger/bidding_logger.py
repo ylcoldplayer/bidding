@@ -28,16 +28,19 @@ log_config = {
 }
 
 
-def get_bidding_logger(logger_name):
+def get_bidding_logger(logger_name, file_name=None):
     """
     Logger for bidding
     :return:
     """
-    logging.config.dictConfig(log_config)
+    config_dict = log_config
+    if file_name:
+        config_dict['handlers']['file']['filename'] = file_name
+    logging.config.dictConfig(config_dict)
     bidding_logger = logging.getLogger(logger_name)
     return bidding_logger
 
 
 if __name__ == '__main__':
-    logger = get_bidding_logger('bidding')
+    logger = get_bidding_logger('drl_bidding')
     logger.info('test')

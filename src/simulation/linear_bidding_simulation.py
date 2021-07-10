@@ -1,12 +1,12 @@
 from src.environments.bidding_env import BiddingEnv
-from src.agents.drl_bidding_agent.drl_bidding_agent import DRLBiddingAgent
+from src.agents.linear_bidding_agent.linear_bidding_agent import LinearBiddingAgent
 
 
 def run():
     fields = ['campaignId', 'timestamp', 'pctr', 'payprice']
     data_path = '../data/test_bidding_request.csv'
     env = BiddingEnv(data_path, fields)
-    agent = DRLBiddingAgent()
+    agent = LinearBiddingAgent()
     obs = env.reset()
     done = False
     reward = 0.0

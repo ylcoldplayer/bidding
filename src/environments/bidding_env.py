@@ -2,7 +2,7 @@ import pandas as pd
 import gym
 
 
-class DRLBiddingEnv(gym.Env):
+class BiddingEnv(gym.Env):
     def __init__(self, data_path, fields):
         """
 
@@ -138,7 +138,7 @@ class BiddingData:
 if __name__ == '__main__':
     fields = ['campaignId', 'timestamp', 'pctr', 'payprice']
     data_file_pth = '../data/test_bidding_request.csv'
-    env = DRLBiddingEnv(data_file_pth, fields)
+    env = BiddingEnv(data_file_pth, fields)
     print('next bid request: \n', env._get_next_bid_request())
     print('\n')
     print(env.step(4.0))
