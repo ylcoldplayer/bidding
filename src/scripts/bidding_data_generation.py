@@ -4,7 +4,7 @@ from src.agents.uitls import *
 from numpy.random import lognormal, normal
 
 START_DATE = '2021-07-04T00::00::45.456777'
-EPISODES = 60
+EPISODES = 360
 STEPS = 96
 
 CAMPAIGN_ID = 'campaignId'
@@ -66,7 +66,7 @@ def generate_pctr(mu=-4, sigma=1):
     return min(lognormal(mu, sigma, 1)[0], 1.0)
 
 
-def generate_payprice(mu=1.2, sigma=1):
+def generate_payprice(mu=1., sigma=0.5):
     """
     Generate payprice from normal distribution
     :param mu:

@@ -9,7 +9,6 @@ CONFIG_FILE = os.path.join(ROOT_DIR, 'src/agents/config.yaml')
 class LinearBiddingAgent:
     def __init__(self, config_file=CONFIG_FILE):
         # hyper parameter
-        print(config_file)
         self.total_budget = get_total_budget(config_file)
         self.target_value = get_target_value(config_file)
         self.T = get_T(config_file)  # total opportunities we have to tune policy

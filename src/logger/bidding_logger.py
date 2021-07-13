@@ -22,7 +22,7 @@ log_config = {
     },
     "formatters": {
         "std_out": {
-            "format": "%(levelname)s : %(module)s : %(funcName)s : %(message)s",
+            "format": "%(levelname)s - %(module)s - %(funcName)s - %(message)s",
         }
     },
 }
