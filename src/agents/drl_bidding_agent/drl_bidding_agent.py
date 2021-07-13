@@ -199,14 +199,14 @@ class DRLBiddingAgent:
         dqn_pre_state = self.dqn_prev_state
 
         interval = int(1440/self.T)
-        self.logger.info('pre_time: ' + str(prev_timestamp))
+        # self.logger.info('pre_time: ' + str(prev_timestamp))
         self.logger.info('cur_time: ' + str(cur_timestamp))
         sd = step_diff(prev_timestamp, cur_timestamp, interval)
-        self.logger.info('step_diff: ' + str(sd))
+        # self.logger.info('step_diff: ' + str(sd))
         same_episode = same_date(prev_timestamp, cur_timestamp)
-        self.logger.info('same_episode: ' + str(same_episode))
+        # self.logger.info('same_episode: ' + str(same_episode))
         terminal_state = (same_episode is False)
-        self.logger.info('terminal state: ' + str(terminal_state))
+        # self.logger.info('terminal state: ' + str(terminal_state))
 
         # update reward and cost
         self._update_reward_cost_within_step(reward, cost)
@@ -231,9 +231,9 @@ class DRLBiddingAgent:
             self.lambda_t *= (1 + self.betas[beta_t_idx])
 
             # Get RewardNet reward_net_r_t
-            self.logger.info('Prev state: ' + str(dqn_pre_state))
+            # self.logger.info('Prev state: ' + str(dqn_pre_state))
             self.logger.info('Prev action: ' + str(dqn_prev_action))
-            self.logger.info('Cur state: ' + str(dqn_cur_state))
+            # self.logger.info('Cur state: ' + str(dqn_cur_state))
 
             sa = np.append(dqn_pre_state, dqn_prev_action)
             reward_net_r_t = float(self.reward_net_agent.get_reward_net_r_t(sa))
@@ -252,12 +252,12 @@ class DRLBiddingAgent:
         elif not same_episode:  # episode changes
             self.logger.info('Total reward: ' + str(self.total_reward))
             self.logger.info('Winning rate: ' + str(self.total_wins*1.0/self.total_bids))
-            self.logger.info('total bids: ' + str(self.total_bids))
+            # self.logger.info('total bids: ' + str(self.total_bids))
 
             self.logger.info('Episode reward: ' + str(self.episode_reward))
-            self.logger.info('Episode wins: ' + str(self.episode_wins))
+            # self.logger.info('Episode wins: ' + str(self.episode_wins))
             self.logger.info('Episode winning rate: ' + str(self.episode_wins*1./self.episode_bids))
-            self.logger.info('Episode bids: ' + str(self.episode_bids))
+            # self.logger.info('Episode bids: ' + str(self.episode_bids))
 
             self.reward_net_agent.update_episode()
             self.reward_net_agent.reset_episode()
@@ -267,8 +267,8 @@ class DRLBiddingAgent:
         self.logger.info('running_budget: ' + str(self.running_budget))
         self.logger.info('lambda_t: ' + str(self.lambda_t))
         self.logger.info('bidding price: ' + str(bidding_price))
-        self.logger.info('eps: ' + str(self.eps))
-        self.logger.info('reward/bids ratio: ' + str(self.total_reward*1./self.total_bids))
+        # self.logger.info('eps: ' + str(self.eps))
+        # self.logger.info('reward/bids ratio: ' + str(self.total_reward*1./self.total_bids))
         self.logger.info('*'*200)
         self.logger.info('*'*200)
         return bidding_price
